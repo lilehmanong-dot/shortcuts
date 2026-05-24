@@ -16,12 +16,12 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 });
 
 // =====================
-// Form Submission
+// Form Submission with Internet Access
 // =====================
 const contactForm = document.querySelector('.contact-form');
 
 if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
+    contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         // Get form values
@@ -31,16 +31,68 @@ if (contactForm) {
         
         // Validate form
         if (name && email && message) {
-            // Show success message
-            alert(`Thank you, ${name}! Your message has been sent successfully. We'll get back to you shortly.`);
+            // Disable submit button during request
+            const submitButton = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
             
-            // Reset form
-            contactForm.reset();
+            try {
+                // Send form data to Formspree API
+                const response = await fetch('https://formspree.io/f/xzzzzbvr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        message: message
+                    })
+                });
+                
+                if (response.ok) {
+                    // Show success message
+                    alert(`Thank you, ${name}! Your message has been sent successfully. We'll get back to you shortly.`);
+                    
+                    // Reset form
+                    contactForm.reset();
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                } else {
+                    throw new Error('Failed to send message');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while sending your message. Please try again later or contact us directly.');
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }
         } else {
             alert('Please fill in all fields.');
         }
     });
 }
+
+// =====================
+// Fetch RV Data from API (Example)
+// =====================
+const fetchRVData = async () => {
+    try {
+        // Example: Fetch data from a public API
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=4');
+        const data = await response.json();
+        console.log('RV Data fetched:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching RV data:', error);
+    }
+};
+
+// Call on page load
+window.addEventListener('load', () => {
+    fetchRVData();
+});
 
 // =====================
 // Smooth Scroll Enhancement
@@ -150,3 +202,4 @@ window.addEventListener('scroll', () => {
 });
 
 console.log('Lehman\'s RV Landing website loaded successfully!');
+console.log('Internet connectivity enabled: Form submissions and API calls active.');
